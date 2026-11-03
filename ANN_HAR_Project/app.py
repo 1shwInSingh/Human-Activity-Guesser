@@ -1,7 +1,7 @@
 import os
 import json
 import numpy as np
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, send_from_directory
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -17,20 +17,18 @@ def resolve_path(filename):
             return path
     return None
 
-# Locate templates directory
-template_dir = os.path.join(BASE_DIR, "templates")
-if not os.path.isdir(template_dir):
-    alt_template = os.path.join(BASE_DIR, "ANN_HAR_Project", "templates")
-    if os.path.isdir(alt_template):
-        template_dir = alt_template
+public_dir = os.path.join(BASE_DIR, "public")
+if not os.path.isdir(public_dir):
+    alt_public = os.path.join(BASE_DIR, "ANN_HAR_Project", "public")
+    if os.path.isdir(alt_public):
+        public_dir = alt_public
 
-app = Flask(__name__, template_folder=template_dir)
+app = Flask(__name__, static_folder=public_dir, static_url_path="")
 application = app
 handler = app
 
 CLASS_NAMES = ["Walking", "Walking Up", "Walking Down", "Sitting", "Standing", "Laying"]
 
-# Lazy-loaded / cached model artifacts
 _MODEL_DATA = None
 _FEATURE_NAMES = None
 
@@ -96,16 +94,29 @@ def predict_single(x_raw):
 
 
 @app.route("/")
+@app.route("/index.html")
+@app.route("/api")
+@app.route("/api/index")
+@app.route("/api/index.py")
 def index():
-    return render_template("index.html")
+    if os.path.isdir(public_dir):
+        return send_from_directory(public_dir, "index.html")
+    # Fallback to templates if needed
+    template_file = resolve_path("templates/index.html")
+    if template_file and os.path.exists(template_file):
+        with open(template_file, "r", encoding="utf-8") as f:
+            return f.read(), 200, {"Content-Type": "text/html"}
+    return "<h1>Human Activity Guesser</h1><p>Demo running on Vercel</p>"
 
 
 @app.route("/api/health")
+@app.route("/health")
 def health():
     return jsonify({"status": "ok", "app": "Human-Activity-Guesser"})
 
 
 @app.route("/api/stats")
+@app.route("/stats")
 def stats():
     data = load_artifacts()
     return jsonify({
@@ -117,6 +128,7 @@ def stats():
 
 
 @app.route("/api/sample")
+@app.route("/sample")
 def get_sample():
     data = load_artifacts()
     total = len(data["y"])
@@ -160,6 +172,7 @@ def get_sample():
 
 
 @app.route("/api/sample-by-activity")
+@app.route("/sample-by-activity")
 def sample_by_activity():
     data = load_artifacts()
     act = request.args.get("activity", "Walking")

@@ -51,3 +51,4 @@ This trains the Keras ANN model and generates:
 - `har_scaler.joblib`
 - `X_test_raw.csv` & `y_test.csv`
 - `model_weights.npz` & `test_samples.npz` (for lightweight serverless inference)
+

@@ -1,0 +1,14 @@
+# Ignore massive training datasets, notebooks, and presentation assets from Vercel build
+ANN_HAR_Project/
+PRESENTATION/
+REPORT FILE/
+"ANN PROJECT Human Activity Recognition wth TensorFlow_Keras"
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.docx
+*.pptx
+*.pdf
+*.zip
+dataset.zip

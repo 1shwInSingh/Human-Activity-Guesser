@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Human Activity Guesser - ANN Demo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .progress-bar-transition { transition: width 0.4s ease-out; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-4xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <header class="text-center space-y-2">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+        <span>UCI HAR Dataset</span>
+        <span>•</span>
+        <span>561 Features</span>
+        <span>•</span>
+        <span>95.4% Test Accuracy</span>
+      </div>
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight flex items-center justify-center gap-3">
+        <span>🏃</span> Human Activity Guesser
+      </h1>
+      <p class="text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
+        A neural network demo classifying smartphone accelerometer &amp; gyroscope data into 6 physical activities.
+      </p>
+    </header>
+
+    <!-- Info Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="bg-slate-800/70 border border-slate-700/60 rounded-xl p-4 shadow-sm">
+        <h2 class="text-sm font-semibold text-indigo-300 mb-1 flex items-center gap-2">
+          <span>ℹ️</span> What is this?
+        </h2>
+        <p class="text-xs text-slate-300 leading-relaxed">
+          This demo showcases an Artificial Neural Network (ANN) trained on smartphone sensor readings. Pick any sample from the test set or click Random to see what the AI guesses.
+        </p>
+      </div>
+      <div class="bg-slate-800/70 border border-slate-700/60 rounded-xl p-4 shadow-sm">
+        <h2 class="text-sm font-semibold text-indigo-300 mb-1 flex items-center gap-2">
+          <span>🧠</span> What does it use?
+        </h2>
+        <ul class="text-xs text-slate-300 space-y-1 list-disc list-inside">
+          <li>Phone 3-axial linear acceleration &amp; angular velocity</li>
+          <li>561 time &amp; frequency domain sensor features</li>
+          <li>3-layer Deep ANN with Dropout &amp; Softmax</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Main Interactive Controls -->
+    <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-xl space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-700/60">
+        <label for="sampleSlider" class="text-sm font-semibold text-slate-200">
+          Choose a saved phone-sensor sample:
+        </label>
+        <div class="flex items-center gap-2">
+          <button id="prevBtn" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 transition">◀ Prev</button>
+          <input type="number" id="sampleInput" min="0" max="2946" value="0"
+                 class="w-20 px-2 py-1 text-xs text-center font-bold bg-slate-900 border border-slate-600 rounded-lg text-indigo-300 focus:outline-none focus:border-indigo-500" />
+          <button id="nextBtn" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 transition">Next ▶</button>
+          <button id="randomBtn" class="px-3 py-1 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white shadow transition flex items-center gap-1">
+            <span>🎲</span> Random
+          </button>
+        </div>
+      </div>
+
+      <!-- Slider -->
+      <div>
+        <input type="range" id="sampleSlider" min="0" max="2946" value="0"
+               class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+        <div class="flex justify-between text-[11px] text-slate-400 mt-1">
+          <span>Sample 0</span>
+          <span id="sliderRangeLabel">Sample 2,946</span>
+        </div>
+      </div>
+
+      <!-- Quick Preset Filter Buttons -->
+      <div class="flex flex-wrap items-center gap-1.5 pt-1">
+        <span class="text-xs text-slate-400 mr-1">Quick jump to:</span>
+        <button onclick="jumpToActivity('Walking')" class="px-2 py-0.5 text-[11px] font-medium rounded bg-slate-700/60 hover:bg-slate-700 text-slate-300">🚶 Walking</button>
+        <button onclick="jumpToActivity('Walking Up')" class="px-2 py-0.5 text-[11px] font-medium rounded bg-slate-700/60 hover:bg-slate-700 text-slate-300">🧗 Walking Up</button>
+        <button onclick="jumpToActivity('Walking Down')" class="px-2 py-0.5 text-[11px] font-medium rounded bg-slate-700/60 hover:bg-slate-700 text-slate-300">🏃‍♂️ Walking Down</button>
+        <button onclick="jumpToActivity('Sitting')" class="px-2 py-0.5 text-[11px] font-medium rounded bg-slate-700/60 hover:bg-slate-700 text-slate-300">🪑 Sitting</button>
+        <button onclick="jumpToActivity('Standing')" class="px-2 py-0.5 text-[11px] font-medium rounded bg-slate-700/60 hover:bg-slate-700 text-slate-300">🧍 Standing</button>
+        <button onclick="jumpToActivity('Laying')" class="px-2 py-0.5 text-[11px] font-medium rounded bg-slate-700/60 hover:bg-slate-700 text-slate-300">🛌 Laying</button>
+      </div>
+
+      <!-- Metrics Row -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+        <div class="bg-slate-900/80 border border-slate-700/80 rounded-xl p-3 text-center">
+          <span class="text-xs text-slate-400 block font-medium">Sample Number</span>
+          <span id="metricSample" class="text-2xl font-bold text-slate-100">#0</span>
+        </div>
+        <div class="bg-slate-900/80 border border-slate-700/80 rounded-xl p-3 text-center">
+          <span class="text-xs text-slate-400 block font-medium">Actual Activity</span>
+          <span id="metricActual" class="text-2xl font-bold text-sky-400">Loading...</span>
+        </div>
+        <div class="bg-slate-900/80 border border-slate-700/80 rounded-xl p-3 text-center">
+          <span class="text-xs text-slate-400 block font-medium">AI Prediction</span>
+          <span id="metricPredicted" class="text-2xl font-bold text-indigo-400">Loading...</span>
+        </div>
+      </div>
+
+      <!-- Prediction Verdict Badge -->
+      <div id="verdictBadge" class="p-3 rounded-xl flex items-center justify-center gap-2 font-semibold text-sm transition">
+        <span>Checking...</span>
+      </div>
+
+      <!-- Natural language summary -->
+      <div class="bg-slate-900/50 rounded-xl p-3 border border-slate-700/50 text-xs text-slate-300 leading-relaxed">
+        <p id="explanationText">
+          The saved label says this sensor window was <strong id="expActual" class="text-white">...</strong>.
+          The ANN looked at the sensor features and guessed <strong id="expPredicted" class="text-white">...</strong>.
+        </p>
+      </div>
+
+      <!-- Model Confidence Bars -->
+      <div class="space-y-3 pt-2">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-semibold text-slate-200">Model Confidence by Activity</h3>
+          <span id="topConfidence" class="text-xs font-semibold text-emerald-400">99.9% Top Match</span>
+        </div>
+
+        <div id="confidenceBars" class="space-y-2">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+
+      <!-- Raw Sensor Features Accordion -->
+      <div class="pt-2 border-t border-slate-700/60">
+        <button id="toggleFeaturesBtn" class="w-full flex items-center justify-between text-xs font-semibold text-slate-400 hover:text-slate-200 py-2">
+          <span class="flex items-center gap-1.5">
+            <span>📊</span> Show first 30 raw sensor features
+          </span>
+          <span id="toggleArrow">▼</span>
+        </button>
+
+        <div id="featuresContainer" class="hidden mt-3 max-h-72 overflow-y-auto rounded-lg border border-slate-700 bg-slate-900/70 p-3 text-xs">
+          <table class="w-full text-left">
+            <thead class="text-slate-400 border-b border-slate-700">
+              <tr>
+                <th class="py-1 px-2 font-medium">#</th>
+                <th class="py-1 px-2 font-medium">Feature Name</th>
+                <th class="py-1 px-2 font-medium text-right">Value</th>
+              </tr>
+            </thead>
+            <tbody id="featuresTableBody" class="divide-y divide-slate-800 text-slate-300">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center text-xs text-slate-500 py-4">
+      <p>Human Activity Recognition (HAR) • Powered by Lightweight ANN Inference on Vercel</p>
+    </footer>
+
+  </div>
+
+  <script>
+    const ACTIVITY_ICONS = {
+      "Walking": "🚶",
+      "Walking Up": "🧗",
+      "Walking Down": "🏃‍♂️",
+      "Sitting": "🪑",
+      "Standing": "🧍",
+      "Laying": "🛌"
+    };
+
+    let totalSamples = 2947;
+    let debounceTimer = null;
+
+    const slider = document.getElementById("sampleSlider");
+    const sampleInput = document.getElementById("sampleInput");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const randomBtn = document.getElementById("randomBtn");
+    const toggleFeaturesBtn = document.getElementById("toggleFeaturesBtn");
+    const featuresContainer = document.getElementById("featuresContainer");
+    const toggleArrow = document.getElementById("toggleArrow");
+
+    async function fetchSample(index) {
+      try {
+        const res = await fetch(`/api/sample?index=${index}`);
+        if (!res.ok) throw new Error("Failed to load sample");
+        const data = await res.json();
+        renderData(data);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderData(data) {
+      totalSamples = data.total_samples || 2947;
+      slider.max = totalSamples - 1;
+      sampleInput.max = totalSamples - 1;
+      document.getElementById("sliderRangeLabel").textContent = `Sample ${(totalSamples - 1).toLocaleString()}`;
+
+      // Metrics
+      document.getElementById("metricSample").textContent = `#${data.index}`;
+      const actualIcon = ACTIVITY_ICONS[data.actual] || "📍";
+      const predIcon = ACTIVITY_ICONS[data.predicted] || "📍";
+      document.getElementById("metricActual").textContent = `${actualIcon} ${data.actual}`;
+      document.getElementById("metricPredicted").textContent = `${predIcon} ${data.predicted}`;
+
+      // Verdict
+      const verdict = document.getElementById("verdictBadge");
+      if (data.is_correct) {
+        verdict.className = "p-3 rounded-xl flex items-center justify-center gap-2 font-semibold text-sm bg-emerald-500/15 border border-emerald-500/30 text-emerald-300";
+        verdict.innerHTML = `<span>✅</span> Correct prediction`;
+      } else {
+        verdict.className = "p-3 rounded-xl flex items-center justify-center gap-2 font-semibold text-sm bg-rose-500/15 border border-rose-500/30 text-rose-300";
+        verdict.innerHTML = `<span>❌</span> Wrong prediction (Expected ${data.actual})`;
+      }
+
+      // Summary
+      document.getElementById("expActual").textContent = data.actual;
+      document.getElementById("expPredicted").textContent = data.predicted;
+
+      // Confidence bars
+      const barsContainer = document.getElementById("confidenceBars");
+      barsContainer.innerHTML = "";
+      let maxProb = 0;
+
+      Object.entries(data.confidence).forEach(([act, prob]) => {
+        if (prob > maxProb) maxProb = prob;
+        const pct = (prob * 100).toFixed(1);
+        const isPredicted = act === data.predicted;
+        const isActual = act === data.actual;
+
+        const row = document.createElement("div");
+        row.className = "space-y-1";
+        row.innerHTML = `
+          <div class="flex justify-between items-center text-xs">
+            <span class="flex items-center gap-1.5 ${isPredicted ? 'font-bold text-white' : 'text-slate-400'}">
+              <span>${ACTIVITY_ICONS[act] || ''}</span> ${act}
+              ${isActual ? '<span class="text-[10px] px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">Actual</span>' : ''}
+              ${isPredicted ? '<span class="text-[10px] px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">AI Pick</span>' : ''}
+            </span>
+            <span class="${isPredicted ? 'font-bold text-indigo-300' : 'text-slate-400'}">${pct}%</span>
+          </div>
+          <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-700/50">
+            <div class="h-2 rounded-full progress-bar-transition ${isPredicted ? 'bg-gradient-to-r from-indigo-500 to-sky-400' : 'bg-slate-700'}"
+                 style="width: ${Math.max(pct, 0.5)}%"></div>
+          </div>
+        `;
+        barsContainer.appendChild(row);
+      });
+
+      document.getElementById("topConfidence").textContent = `${(maxProb * 100).toFixed(1)}% Top Match`;
+
+      // Features table
+      const tbody = document.getElementById("featuresTableBody");
+      tbody.innerHTML = "";
+      if (data.features && data.features.length) {
+        data.features.forEach(f => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td class="py-1 px-2 text-slate-500">${f.index}</td>
+            <td class="py-1 px-2 font-mono text-slate-300">${f.name}</td>
+            <td class="py-1 px-2 text-right font-mono text-indigo-300">${f.value.toFixed(5)}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    function onSampleChange(newVal) {
+      const idx = Math.max(0, Math.min(totalSamples - 1, parseInt(newVal, 10) || 0));
+      slider.value = idx;
+      sampleInput.value = idx;
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => fetchSample(idx), 40);
+    }
+
+    slider.addEventListener("input", (e) => onSampleChange(e.target.value));
+    sampleInput.addEventListener("change", (e) => onSampleChange(e.target.value));
+
+    prevBtn.addEventListener("click", () => onSampleChange(parseInt(slider.value, 10) - 1));
+    nextBtn.addEventListener("click", () => onSampleChange(parseInt(slider.value, 10) + 1));
+    randomBtn.addEventListener("click", () => {
+      const randIdx = Math.floor(Math.random() * totalSamples);
+      onSampleChange(randIdx);
+    });
+
+    async function jumpToActivity(targetActivity) {
+      try {
+        const res = await fetch(`/api/sample-by-activity?activity=${encodeURIComponent(targetActivity)}`);
+        if (res.ok) {
+          const data = await res.json();
+          onSampleChange(data.index);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    toggleFeaturesBtn.addEventListener("click", () => {
+      const isHidden = featuresContainer.classList.contains("hidden");
+      if (isHidden) {
+        featuresContainer.classList.remove("hidden");
+        toggleArrow.textContent = "▲";
+      } else {
+        featuresContainer.classList.add("hidden");
+        toggleArrow.textContent = "▼";
+      }
+    });
+
+    // Initialize
+    fetchSample(0);
+  </script>
+</body>
+</html>
+

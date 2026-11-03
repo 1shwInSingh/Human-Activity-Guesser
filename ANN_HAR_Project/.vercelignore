@@ -1,0 +1,19 @@
+# Ignore massive training datasets, notebooks, and models from Vercel function bundle
+dataset/
+UCI HAR Dataset/
+__MACOSX/
+X_test_raw.csv
+y_test.csv
+*.csv
+*.keras
+*.joblib
+*.ipynb
+requirements-train.txt
+streamlit_app.py
+PRESENTATION_OUTLINE.md
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.zip
+dataset.zip

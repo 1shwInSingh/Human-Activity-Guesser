@@ -1,7 +1,13 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/**/*.py": {
+      "excludeFiles": "{**/dataset/**,**/UCI HAR Dataset/**,**/__MACOSX/**,**/*.csv,**/*.keras,**/*.joblib,**/*.ipynb,**/*.docx,**/*.pdf,**/*.pptx,PRESENTATION/**,REPORT FILE/**}"
+    }
+  },
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/api/(.*)",
       "destination": "/api/index.py"
     }
   ]
