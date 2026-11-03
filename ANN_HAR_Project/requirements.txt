@@ -1,8 +1,2 @@
-numpy
-pandas
-scikit-learn
-matplotlib
-seaborn
-tensorflow
-streamlit
-joblib
+Flask>=3.0.0
+numpy>=1.24.0
